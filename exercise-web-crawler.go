@@ -24,7 +24,7 @@ func Crawl(url string, depth int, fetcher Fetcher, ch chan string, internalArgs 
 		case struct { sync.RWMutex; m map[string]bool }:
 			visitedUrls = argVal
 		default:
-			panic(fmt.Sprintf("%T", internalArg))
+			panic(fmt.Sprintf("Unknown argument type: %T", internalArg))
 		}
 	}
 
