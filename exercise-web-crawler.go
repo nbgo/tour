@@ -29,7 +29,7 @@ func Crawl(url string, depth int, fetcher Fetcher, ch chan string, internalArgs 
 	}
 
 	if visitedUrls.m == nil {
-		visitedUrls = struct{
+		visitedUrls = struct {
 			sync.RWMutex
 			m map[string]bool
 		}{m: make(map[string]bool)}
@@ -38,6 +38,10 @@ func Crawl(url string, depth int, fetcher Fetcher, ch chan string, internalArgs 
 	if depth <= 0 {
 		return
 	}
+
+	var body string
+	var urls []string
+	var err error
 
 	if func() bool {
 		if func() bool {
@@ -59,20 +63,19 @@ func Crawl(url string, depth int, fetcher Fetcher, ch chan string, internalArgs 
 		if ok {
 			return true
 		}
+		body, urls, err = fetcher.Fetch(url)
 		visitedUrls.m[url] = true
 		return false
 	}() {
 		return
 	}
 
-
-	body, urls, err := fetcher.Fetch(url)
 	if err != nil {
 		ch <- err.Error()
 		return
 	}
 	ch <- fmt.Sprintf("found: %s %q", url, body)
-	innerCrawlDone := make(chan bool)
+	innerCrawlDone := make(chan bool, len(urls))
 	for _, u := range urls {
 		go Crawl(u, depth-1, fetcher, ch, innerCrawlDone, visitedUrls)
 	}
