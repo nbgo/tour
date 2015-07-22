@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"sync"
 )
 
 type Fetcher interface {
@@ -19,13 +20,13 @@ func Crawl(url string, depth int, fetcher Fetcher, ch chan string, internalArgs 
 	}
 
 	var urlChecker chan *urlCheck
-	var terminator chan bool
+	var waiting *sync.WaitGroup
 
 	for _, internalArg := range internalArgs {
 		switch argVal := internalArg.(type) {
-		case chan bool:
-			terminator = argVal
-			defer func() {terminator <- true}()
+		case *sync.WaitGroup:
+			waiting = argVal
+			defer func() {waiting.Done()}()
 		case chan *urlCheck:
 			urlChecker = argVal
 		default:
@@ -75,14 +76,13 @@ func Crawl(url string, depth int, fetcher Fetcher, ch chan string, internalArgs 
 	}
 
 	ch <- fmt.Sprintf("found: %s %q", url, body)
-	innerCrawlDone := make(chan bool, len(urls))
+	innerWaiting := new(sync.WaitGroup)
+	innerWaiting.Add(len(urls))
 	for _, u := range urls {
-		go Crawl(u, depth-1, fetcher, ch, innerCrawlDone, urlChecker)
+		go Crawl(u, depth-1, fetcher, ch, innerWaiting, urlChecker)
 	}
-	for range urls {
-		<-innerCrawlDone
-	}
-	if terminator == nil {
+	innerWaiting.Wait()
+	if waiting == nil {
 		urlChecker <- &urlCheck{}
 		close(ch)
 	}
