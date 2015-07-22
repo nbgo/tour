@@ -1,7 +1,8 @@
 package main
 import (
-	"fmt"
 	"time"
+	"log"
+	"os"
 )
 
 func panicingFunc() {
@@ -10,16 +11,28 @@ func panicingFunc() {
 
 func panicingFuncInnerCaller() {
 	defer func() {
-		fmt.Println("panicingFuncInnerCaller() ended")
+		log.Println("panicingFuncInnerCaller() ended")
 	}()
 	panicingFunc()
 }
 
+func panicGuard(action func()) {
+	defer func() {
+		if e := recover(); e != nil {
+			log.Printf("PANIC: %v", e)
+		}
+	}()
+	action()
+}
+
 func panicingFuncCaller() {
 	defer func() {
-		fmt.Println("panicingFuncCaller() ended")
+		log.Println("panicingFuncCaller() ended")
 	}()
-	go panicingFuncInnerCaller()
+	go panicGuard(panicingFuncInnerCaller)
+	if _, err := os.Open("111.txt"); err != nil {
+		log.Println(err)
+	}
 	time.Sleep(time.Second)
 }
 
@@ -34,7 +47,7 @@ func panicingFuncCaller() {
 
 func main() {
 	defer func() {
-		fmt.Println("Main() ended")
+		log.Println("Main() ended")
 	}()
 	panicingFuncCaller()
 }
