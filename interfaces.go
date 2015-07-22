@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"math"
+	"reflect"
 )
 
 type Abser interface {
@@ -42,6 +43,14 @@ func main() {
 	fmt.Println(a1.Abs())
 	fmt.Println(a1.NegativeAbs())
 	fmt.Println(a1)
+
+	var c *Vertex = nil
+	var b Abser = c
+	fmt.Println(reflect.TypeOf(nil))
+	fmt.Println(reflect.TypeOf(b))
+	fmt.Println(b == nil)
+	fmt.Println(reflect.ValueOf(b).IsNil())
+	fmt.Println(c == nil)
 }
 
 type MyFloat float64
