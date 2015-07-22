@@ -20,13 +20,10 @@ func Crawl(url string, depth int, fetcher Fetcher, ch chan string, internalArgs 
 	}
 
 	var urlChecker chan *urlCheck
-	var waiting *sync.WaitGroup
+	var isRoot bool
 
 	for _, internalArg := range internalArgs {
 		switch argVal := internalArg.(type) {
-		case *sync.WaitGroup:
-			waiting = argVal
-			defer func() {waiting.Done()}()
 		case chan *urlCheck:
 			urlChecker = argVal
 		default:
@@ -35,6 +32,7 @@ func Crawl(url string, depth int, fetcher Fetcher, ch chan string, internalArgs 
 	}
 
 	if urlChecker == nil {
+		isRoot = true
 		urlChecker = make(chan *urlCheck)
 		go func() {
 			fmt.Println("checker started")
@@ -79,10 +77,13 @@ func Crawl(url string, depth int, fetcher Fetcher, ch chan string, internalArgs 
 	innerWaiting := new(sync.WaitGroup)
 	innerWaiting.Add(len(urls))
 	for _, u := range urls {
-		go Crawl(u, depth-1, fetcher, ch, innerWaiting, urlChecker)
+		go func(url string) {
+			defer innerWaiting.Done()
+			Crawl(url, depth-1, fetcher, ch, urlChecker)
+		}(u)
 	}
 	innerWaiting.Wait()
-	if waiting == nil {
+	if isRoot {
 		urlChecker <- &urlCheck{}
 		close(ch)
 	}
