@@ -51,6 +51,11 @@ func main() {
 	fmt.Println(b == nil)
 	fmt.Println(reflect.ValueOf(b).IsNil())
 	fmt.Println(c == nil)
+
+	var d interface{}
+	var e = "hello"
+	d = e
+	fmt.Println(d == e)
 }
 
 type MyFloat float64
