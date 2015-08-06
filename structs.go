@@ -7,6 +7,12 @@ type Vertex struct {
 	Y int
 }
 
+var globalVertex *Vertex
+func Test1() Vertex {
+	globalVertex = &Vertex{1,1}
+	return *globalVertex
+}
+
 func main() {
 	v := Vertex{1, 2}
 	fmt.Println(v)
@@ -22,4 +28,9 @@ func main() {
 	v2 := Vertex{X:1}
 	p2 := &Vertex{1, 2}
 	fmt.Println(v2, p2)
+
+	v3 := Test1()
+	fmt.Println(globalVertex)
+	v3.X = 5
+	fmt.Println(globalVertex)
 }
