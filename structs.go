@@ -33,4 +33,16 @@ func main() {
 	fmt.Println(globalVertex)
 	v3.X = 5
 	fmt.Println(globalVertex)
+
+	sl := make([]Vertex, 1)
+	v4 := Vertex{1,1}
+	sl[0] = v4
+	v4.X = 2
+	fmt.Println(sl[0]) // output is 1,1
+
+	sl2 := make([]*Vertex, 1)
+	v5 := &Vertex{1,1}
+	sl2[0] = v5
+	v5.X = 2
+	fmt.Println(sl2[0]) // output is 2,1
 }
